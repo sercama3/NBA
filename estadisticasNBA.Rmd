@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Importamos los datos
 ```{r}
 library(readr)
-jugadoresNBA_2023 <- read_delim("jugadoresNBA2023.csv", 
+jugadoresNBA_2023 <- read_delim("data/jugadoresNBA2023.csv", 
     delim = ";", escape_double = FALSE, col_types = cols(AGE = col_number(), 
         GP = col_number(), W = col_number(), 
         L = col_number(), MIN = col_number(), 
@@ -29,7 +29,7 @@ jugadoresNBA_2023 <- read_delim("jugadoresNBA2023.csv",
         TD3 = col_number(), `+/-` = col_number()), 
     trim_ws = TRUE)
 
-equipos2023 <- read_delim("equipos2023.csv", 
+equipos2023 <- read_delim("data/equipos2023.csv", 
     delim = ";", escape_double = FALSE, col_types = cols(GP = col_integer(), 
         W = col_integer(), L = col_integer(), 
         `WIN%` = col_number(), MIN = col_number(), 
@@ -45,7 +45,7 @@ equipos2023 <- read_delim("equipos2023.csv",
         PF = col_number(), PFD = col_number(), 
         `+/-` = col_number()), trim_ws = TRUE)
 
-jugadoresNBA_2022 <- read_delim("jugadoresNBA2022.csv", 
+jugadoresNBA_2022 <- read_delim("data/jugadoresNBA2022.csv", 
     delim = ";", escape_double = FALSE, col_types = cols(AGE = col_number(), 
         GP = col_number(), W = col_number(), 
         L = col_number(), MIN = col_number(), 
@@ -62,7 +62,7 @@ jugadoresNBA_2022 <- read_delim("jugadoresNBA2022.csv",
         TD3 = col_number(), `+/-` = col_number()), 
     trim_ws = TRUE)
 
-equipos2022 <- read_delim("equipos2022.csv", 
+equipos2022 <- read_delim("data/equipos2022.csv", 
     delim = ";", escape_double = FALSE, col_types = cols(GP = col_integer(), 
         W = col_integer(), L = col_integer(), 
         `WIN%` = col_number(), MIN = col_number(), 
@@ -98,8 +98,8 @@ equipos2022 <- equipos2022 %>%
 
 ```{r}
 library(tidyr)
-max_puntos <- bind_rows(jugadoresNBA_2022,jugadoresNBA_2023)
-max_puntos <- max_puntos %>% select(PLAYER,PPG,SEASON) %>%
+all_seasons <- bind_rows(jugadoresNBA_2022,jugadoresNBA_2023)
+max_puntos <- all_seasons %>% select(PLAYER,PPG,SEASON) %>%
   mutate(PPG = round(PPG,2)) %>%
   arrange(desc(PPG)) %>%
   pivot_wider(names_from = SEASON, values_from = PPG) %>%
@@ -107,6 +107,7 @@ max_puntos <- max_puntos %>% select(PLAYER,PPG,SEASON) %>%
 
 ```
 
+Máximos anotadores
 ```{r}
 library(plotly)
 # Crear un gráfico interactivo con plotly
@@ -144,7 +145,96 @@ plot
 
 ```
 
+Máximos asistentes
+```{r}
+max_asistentes <- all_seasons %>% select(PLAYER,AST,SEASON) %>%
+  arrange(desc(AST)) %>%
+  pivot_wider(names_from = SEASON, values_from = AST) %>%
+  head(20)
+```
 
+```{r}
+library(plotly)
+# Crear un gráfico interactivo con plotly
+plot <- max_asistentes %>%
+  plot_ly(
+    x = ~PLAYER,
+    y = ~`2022/2023`,
+    name = 'Temporada 1',
+    type = 'bar',
+    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
+    visible = T
+  ) %>%
+  add_trace(
+    x = ~PLAYER,
+    y = ~`2023/2024`,
+    name = 'Temporada 2',
+    type = 'bar',
+    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
+    visible = T
+  ) %>%
+  layout(
+    title = "Comparación de Puntos por Partido entre Temporadas",
+    xaxis = list(title = "Jugador"),
+    yaxis = list(title = "Puntos por Partido")
+    
+  )
+
+# Mostrar el gráfico interactivo
+plot
+
+
+```
+
+Máximos reboteadores
+
+```{r}
+max_reboteadores <- all_seasons %>% select(PLAYER,REB,SEASON) %>%
+  arrange(desc(REB)) %>%
+  pivot_wider(names_from = SEASON, values_from = REB) %>%
+  head(20)
+```
+
+```{r}
+library(plotly)
+# Crear un gráfico interactivo con plotly
+plot <- max_reboteadores %>%
+  plot_ly(
+    x = ~PLAYER,
+    y = ~`2022/2023`,
+    name = 'Temporada 1',
+    type = 'bar',
+    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
+    visible = T
+  ) %>%
+  add_trace(
+    x = ~PLAYER,
+    y = ~`2023/2024`,
+    name = 'Temporada 2',
+    type = 'bar',
+    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
+    visible = T
+  ) %>%
+  layout(
+    title = "Comparación de Puntos por Partido entre Temporadas",
+    xaxis = list(title = "Jugador"),
+    yaxis = list(title = "Puntos por Partido")
+    
+  )
+
+# Mostrar el gráfico interactivo
+plot
+
+
+```
 
 
 4.1 Predicción del MVP
