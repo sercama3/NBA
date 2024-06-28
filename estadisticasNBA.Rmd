@@ -1,0 +1,241 @@
+---
+title: "nba"
+output: html_document
+date: "2024-06-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Importamos los datos
+```{r}
+library(readr)
+jugadoresNBA_2023 <- read_delim("jugadoresNBA2023.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(AGE = col_number(), 
+        GP = col_number(), W = col_number(), 
+        L = col_number(), MIN = col_number(), 
+        PTS = col_number(), FGM = col_number(), 
+        FGA = col_number(), `FG%` = col_number(), 
+        `3PM` = col_number(), `3PA` = col_number(), 
+        `3P%` = col_number(), FTM = col_number(), 
+        FTA = col_number(), `FT%` = col_number(), 
+        OREB = col_number(), DREB = col_number(), 
+        REB = col_number(), AST = col_number(), 
+        TOV = col_number(), STL = col_number(), 
+        BLK = col_number(), PF = col_number(), 
+        FP = col_number(), DD2 = col_number(), 
+        TD3 = col_number(), `+/-` = col_number()), 
+    trim_ws = TRUE)
+
+equipos2023 <- read_delim("equipos2023.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(GP = col_integer(), 
+        W = col_integer(), L = col_integer(), 
+        `WIN%` = col_number(), MIN = col_number(), 
+        PTS = col_number(), FGM = col_number(), 
+        FGA = col_number(), `FG%` = col_number(), 
+        `3PM` = col_number(), `3PA` = col_number(), 
+        `3P%` = col_number(), FTM = col_number(), 
+        FTA = col_number(), `FT%` = col_number(), 
+        OREB = col_number(), DREB = col_number(), 
+        REB = col_number(), AST = col_number(), 
+        TOV = col_number(), STL = col_number(), 
+        BLK = col_number(), BLKA = col_number(), 
+        PF = col_number(), PFD = col_number(), 
+        `+/-` = col_number()), trim_ws = TRUE)
+
+jugadoresNBA_2022 <- read_delim("jugadoresNBA2022.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(AGE = col_number(), 
+        GP = col_number(), W = col_number(), 
+        L = col_number(), MIN = col_number(), 
+        PTS = col_number(), FGM = col_number(), 
+        FGA = col_number(), `FG%` = col_number(), 
+        `3PM` = col_number(), `3PA` = col_number(), 
+        `3P%` = col_number(), FTM = col_number(), 
+        FTA = col_number(), `FT%` = col_number(), 
+        OREB = col_number(), DREB = col_number(), 
+        REB = col_number(), AST = col_number(), 
+        TOV = col_number(), STL = col_number(), 
+        BLK = col_number(), PF = col_number(), 
+        FP = col_number(), DD2 = col_number(), 
+        TD3 = col_number(), `+/-` = col_number()), 
+    trim_ws = TRUE)
+
+equipos2022 <- read_delim("equipos2022.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(GP = col_integer(), 
+        W = col_integer(), L = col_integer(), 
+        `WIN%` = col_number(), MIN = col_number(), 
+        PTS = col_number(), FGM = col_number(), 
+        FGA = col_number(), `FG%` = col_number(), 
+        `3PM` = col_number(), `3PA` = col_number(), 
+        `3P%` = col_number(), FTM = col_number(), 
+        FTA = col_number(), `FT%` = col_number(), 
+        OREB = col_number(), DREB = col_number(), 
+        REB = col_number(), AST = col_number(), 
+        TOV = col_number(), STL = col_number(), 
+        BLK = col_number(), BLKA = col_number(), 
+        PF = col_number(), PFD = col_number(), 
+        `+/-` = col_number()), trim_ws = TRUE)
+```
+
+Limpieza de datos
+
+```{r}
+library(dplyr)
+jugadoresNBA_2023 <- jugadoresNBA_2023 %>%
+  mutate(PPG = PTS / GP) %>%
+  select(PLAYER,TEAM,AGE,GP,W,L,MIN,PTS,PPG,everything()) %>%
+  select(-FP)
+jugadoresNBA_2022 <- jugadoresNBA_2022 %>%
+  mutate(PPG = PTS / GP) %>%
+  select(PLAYER,TEAM,AGE,GP,W,L,MIN,PTS,PPG,everything()) %>%
+  select(-FP)
+equipos2022 <- equipos2022 %>%
+  na.omit()
+```
+
+
+```{r}
+library(tidyr)
+max_puntos <- bind_rows(jugadoresNBA_2022,jugadoresNBA_2023)
+max_puntos <- max_puntos %>% select(PLAYER,PPG,SEASON) %>%
+  mutate(PPG = round(PPG,2)) %>%
+  arrange(desc(PPG)) %>%
+  pivot_wider(names_from = SEASON, values_from = PPG) %>%
+  head(20)
+
+```
+
+```{r}
+library(plotly)
+# Crear un gráfico interactivo con plotly
+plot <- max_puntos %>%
+  plot_ly(
+    x = ~PLAYER,
+    y = ~`2022/2023`,
+    name = 'Temporada 1',
+    type = 'bar',
+    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
+    visible = T
+  ) %>%
+  add_trace(
+    x = ~PLAYER,
+    y = ~`2023/2024`,
+    name = 'Temporada 2',
+    type = 'bar',
+    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
+    hoverinfo = 'text',
+    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
+    visible = T
+  ) %>%
+  layout(
+    title = "Comparación de Puntos por Partido entre Temporadas",
+    xaxis = list(title = "Jugador"),
+    yaxis = list(title = "Puntos por Partido")
+    
+  )
+
+# Mostrar el gráfico interactivo
+plot
+
+
+```
+
+
+
+
+4.1 Predicción del MVP
+4.1.1 Preparación de datos
+
+```{r}
+library(dplyr)
+library(caret)
+library(ggplot2)
+library(randomForest)
+
+# Seleccionar características relevantes
+X <- jugadoresNBA_2023 %>% select(PTS, AST, REB,`FG%`, TOV, STL, DD2, TD3)
+X <- X %>%
+ mutate(MVP_votes = PTS * 0.7 + AST * 0.5 + REB * 0.5 + TD3 * 0.2 + DD2 * 0.1)
+y <- X$MVP_votes
+
+# Dividir los datos en conjunto de entrenamiento y prueba
+set.seed(42)
+trainIndex <- createDataPartition(y, p = 0.8, list = FALSE)
+X_train <- X[trainIndex,]
+X_test <- X[-trainIndex,]
+y_train <- y[trainIndex]
+y_test <- y[-trainIndex]
+```
+
+Entrenamiento y evaluación del modelo
+
+```{r}
+# Modelo de regresión lineal
+model <- lm(MVP_votes ~ ., data = cbind(X_train, MVP_votes = y_train))
+
+# Predicciones y evaluación del modelo
+y_pred <- predict(model, newdata = X_test)
+mse <- mean((y_test - y_pred)^2)
+print(paste('Error cuadrático medio:', mse))
+
+```
+```{r}
+# Crear un dataframe con los valores reales y predichos
+results_df <- data.frame(
+  Player = jugadoresNBA_2023$PLAYER[-trainIndex],  # Nombres de los jugadores en el conjunto de prueba
+  Real_MVP_Votes = y_test,
+  Predicted_MVP_Votes = y_pred
+)
+
+# Mostrar las primeras filas del dataframe
+head(results_df)
+```
+
+4.2 Predicción de posiciones de equipos
+4.2.1 Preparación de datos
+
+```{r}
+# Renombrar la columna FG% a FG_percent si es necesario
+names(equipos2023)[names(equipos2023) == "FG%"] <- "FG_percent"
+names(equipos2023)[names(equipos2023) == "3P%"] <- "TP_percent"
+# Seleccionar características relevantes
+# Vector de posiciones correspondiente a las filas ordenadas del dataframe
+positions <- 1:nrow(equipos2023)
+
+equipos2023$POS <- positions
+X_team <- equipos2023 %>% select(TEAM, PTS, FG_percent, TP_percent, REB, AST)
+y_team <- equipos2023$POS
+
+# Dividir los datos en conjunto de entrenamiento y prueba
+set.seed(42)
+trainIndex_team <- createDataPartition(y_team, p = 0.8, list = FALSE)
+X_team_train <- X_team[trainIndex_team,]
+X_team_test <- X_team[-trainIndex_team,]
+y_team_train <- y_team[trainIndex_team]
+y_team_test <- y_team[-trainIndex_team]
+
+```
+
+
+Entrenamiento y evaluación del modelo
+
+```{r}
+
+# Modelo de Random Forest para clasificación
+rf_model <- randomForest(as.factor(y_team_train) ~ ., data = X_team_train)
+
+# Ver la importancia de las variables
+print(importance(rf_model))
+
+
+# Predicciones y evaluación del modelo en los datos de prueba
+y_team_pred <- predict(rf_model, newdata = X_team_test)
+accuracy <- sum(y_team_pred == y_team_test) / length(y_team_test)
+print(paste('Precisión del modelo:', accuracy))
+
+```
+
