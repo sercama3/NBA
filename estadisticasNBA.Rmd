@@ -109,129 +109,80 @@ max_puntos <- all_seasons %>% select(PLAYER,PPG,SEASON) %>%
 
 Máximos anotadores
 ```{r}
-library(plotly)
-# Crear un gráfico interactivo con plotly
-plot <- max_puntos %>%
-  plot_ly(
-    x = ~PLAYER,
-    y = ~`2022/2023`,
-    name = 'Temporada 1',
-    type = 'bar',
-    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
-    visible = T
-  ) %>%
-  add_trace(
-    x = ~PLAYER,
-    y = ~`2023/2024`,
-    name = 'Temporada 2',
-    type = 'bar',
-    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
-    visible = T
-  ) %>%
-  layout(
-    title = "Comparación de Puntos por Partido entre Temporadas",
-    xaxis = list(title = "Jugador"),
-    yaxis = list(title = "Puntos por Partido")
-    
-  )
-
-# Mostrar el gráfico interactivo
-plot
+max_anotadores <- all_seasons %>% select(PLAYER,PPG,SEASON) %>%
+  arrange(desc(PPG)) %>%
+  head(20) 
+  
+```
 
 
+```{r}
+library(ggplot2)
+# Crear el gráfico de barras
+ggplot(max_anotadores, aes(x = PLAYER, y = PPG, fill = SEASON)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = round(PPG,2)), 
+            position = position_dodge(width = 0.9), 
+            vjust = 0.5, hjust = 3.5, # Centramos el texto
+            angle = 90, size = 3.5) +
+  labs(title = "Máximos Anotadores",
+       x = "Jugador", 
+       y = "Puntos por Partido (PPG)",
+       fill = "Temporada") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
 
 Máximos asistentes
 ```{r}
 max_asistentes <- all_seasons %>% select(PLAYER,AST,SEASON) %>%
   arrange(desc(AST)) %>%
-  pivot_wider(names_from = SEASON, values_from = AST) %>%
   head(20)
+  
 ```
+
 
 ```{r}
-library(plotly)
-# Crear un gráfico interactivo con plotly
-plot <- max_asistentes %>%
-  plot_ly(
-    x = ~PLAYER,
-    y = ~`2022/2023`,
-    name = 'Temporada 1',
-    type = 'bar',
-    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
-    visible = T
-  ) %>%
-  add_trace(
-    x = ~PLAYER,
-    y = ~`2023/2024`,
-    name = 'Temporada 2',
-    type = 'bar',
-    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
-    visible = T
-  ) %>%
-  layout(
-    title = "Comparación de Puntos por Partido entre Temporadas",
-    xaxis = list(title = "Jugador"),
-    yaxis = list(title = "Puntos por Partido")
-    
-  )
-
-# Mostrar el gráfico interactivo
-plot
+# Crear el gráfico de barras
+ggplot(max_asistentes, aes(x = PLAYER, y = AST, fill = SEASON)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = AST), 
+            position = position_dodge(width = 0.9), 
+            vjust = 0.5, hjust = 5, # Centramos el texto
+            angle = 90, size = 3.5) +
+  labs(title = "Máximos asistentes",
+       x = "Jugador", 
+       y = "Asistencias totales",
+       fill = "Temporada") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
 
 ```
+
 
 Máximos reboteadores
 
 ```{r}
 max_reboteadores <- all_seasons %>% select(PLAYER,REB,SEASON) %>%
   arrange(desc(REB)) %>%
-  pivot_wider(names_from = SEASON, values_from = REB) %>%
   head(20)
 ```
 
 ```{r}
-library(plotly)
-# Crear un gráfico interactivo con plotly
-plot <- max_reboteadores %>%
-  plot_ly(
-    x = ~PLAYER,
-    y = ~`2022/2023`,
-    name = 'Temporada 1',
-    type = 'bar',
-    marker = list(color = 'rgba(255, 100, 100, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 1): ", `2022/2023`),
-    visible = T
-  ) %>%
-  add_trace(
-    x = ~PLAYER,
-    y = ~`2023/2024`,
-    name = 'Temporada 2',
-    type = 'bar',
-    marker = list(color = 'rgba(100, 100, 255, 0.7)'),
-    hoverinfo = 'text',
-    text = ~paste("Jugador: ", PLAYER, "<br>Puntos por partido (Temporada 2): ", `2023/2024`),
-    visible = T
-  ) %>%
-  layout(
-    title = "Comparación de Puntos por Partido entre Temporadas",
-    xaxis = list(title = "Jugador"),
-    yaxis = list(title = "Puntos por Partido")
-    
-  )
-
-# Mostrar el gráfico interactivo
-plot
+# Crear el gráfico de barras
+ggplot(max_reboteadores, aes(x = PLAYER, y = REB, fill = SEASON)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = REB), 
+            position = position_dodge(width = 0.9), 
+            vjust = 0.5, hjust = 5, # Centramos el texto
+            angle = 90, size = 3.5) +
+  labs(title = "Máximos reboteadores",
+       x = "Jugador", 
+       y = "Rebotes totales",
+       fill = "Temporada") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
 
 ```
