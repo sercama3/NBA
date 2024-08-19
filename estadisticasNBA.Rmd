@@ -192,91 +192,85 @@ ggplot(max_reboteadores, aes(x = PLAYER, y = REB, fill = SEASON)) +
 4.1.1 Preparación de datos
 
 ```{r}
+datos_MVP2022 <- jugadoresNBA_2022 %>%
+  mutate(AST = round(AST / GP,2),
+         REB = round(REB / GP,2),
+         TOV = round(TOV / GP,2),
+         STL = round(STL / GP,2)) %>%
+  select(PLAYER,PPG,AST,REB,`FG%`, TOV, STL, DD2, TD3) 
+  
+```
+
+```{r}
+# Calcular el puntaje combinado
+datos_MVP2022 <- datos_MVP2022 %>%
+  mutate(PPG = round(PPG,2)) %>%
+  mutate(Puntaje_Combinado = 
+  PPG * 0.4 + 
+  AST * 0.15 + 
+  REB * 0.15 + 
+  `FG%` * 0.05 +
+  TOV * -0.2 + 
+  STL * 0.05 + 
+  DD2 * 0.05 + 
+  TD3 * 0.05 +
+  equipos2022$W * 0.1)
+
+# Ordenar por puntaje combinado para encontrar el MVP
+mvp_2022 <- datos_MVP2022[which.max(datos_MVP2022$Puntaje_Combinado), ]
+
+print(mvp_2022)
+
+```
+
+```{r}
+datos_MVP2023 <- jugadoresNBA_2023 %>%
+  mutate(AST = round(AST / GP,2),
+         REB = round(REB / GP,2),
+         TOV = round(TOV / GP,2),
+         STL = round(STL / GP,2)) %>%
+  select(PLAYER,PPG,AST,REB,`FG%`, TOV, STL, DD2, TD3) 
+  
+```
+
+```{r}
+# Asignar pesos a cada métrica
+pesos <- c(PPG = 0.4, Asistencias = 0.2, Rebotes = 0.2, PorcentajeTiros = 0.2)
+
+# Calcular el puntaje combinado
+datos_MVP2023 <- datos_MVP2023 %>%
+  mutate(PPG = round(PPG,2)) %>%
+  mutate(Puntaje_Combinado = 
+  PPG * 0.4 + 
+  AST * 0.15 + 
+  REB * 0.15 + 
+  `FG%` * 0.05 +
+  TOV * -0.2 + 
+  STL * 0.05 + 
+  DD2 * 0.05 + 
+  TD3 * 0.05 +
+  equipos2023$W * 0.1)
+
+# Ordenar por puntaje combinado para encontrar el MVP
+mvp_2023 <- datos_MVP2023[which.max(datos_MVP2023$Puntaje_Combinado), ]
+
+print(mvp_2023)
+
+```
+
+
+```{r}
 library(dplyr)
 library(caret)
 library(ggplot2)
 library(randomForest)
 
 # Seleccionar características relevantes
-X <- jugadoresNBA_2023 %>% select(PTS, AST, REB,`FG%`, TOV, STL, DD2, TD3)
+X <- jugadoresNBA_2023 %>% select(PLAYER,PTS, AST, REB,`FG%`, TOV, STL, DD2, TD3)
 X <- X %>%
  mutate(MVP_votes = PTS * 0.7 + AST * 0.5 + REB * 0.5 + TD3 * 0.2 + DD2 * 0.1)
 y <- X$MVP_votes
 
-# Dividir los datos en conjunto de entrenamiento y prueba
-set.seed(42)
-trainIndex <- createDataPartition(y, p = 0.8, list = FALSE)
-X_train <- X[trainIndex,]
-X_test <- X[-trainIndex,]
-y_train <- y[trainIndex]
-y_test <- y[-trainIndex]
-```
-
-Entrenamiento y evaluación del modelo
-
-```{r}
-# Modelo de regresión lineal
-model <- lm(MVP_votes ~ ., data = cbind(X_train, MVP_votes = y_train))
-
-# Predicciones y evaluación del modelo
-y_pred <- predict(model, newdata = X_test)
-mse <- mean((y_test - y_pred)^2)
-print(paste('Error cuadrático medio:', mse))
-
-```
-```{r}
-# Crear un dataframe con los valores reales y predichos
-results_df <- data.frame(
-  Player = jugadoresNBA_2023$PLAYER[-trainIndex],  # Nombres de los jugadores en el conjunto de prueba
-  Real_MVP_Votes = y_test,
-  Predicted_MVP_Votes = y_pred
-)
-
-# Mostrar las primeras filas del dataframe
-head(results_df)
-```
-
-4.2 Predicción de posiciones de equipos
-4.2.1 Preparación de datos
-
-```{r}
-# Renombrar la columna FG% a FG_percent si es necesario
-names(equipos2023)[names(equipos2023) == "FG%"] <- "FG_percent"
-names(equipos2023)[names(equipos2023) == "3P%"] <- "TP_percent"
-# Seleccionar características relevantes
-# Vector de posiciones correspondiente a las filas ordenadas del dataframe
-positions <- 1:nrow(equipos2023)
-
-equipos2023$POS <- positions
-X_team <- equipos2023 %>% select(TEAM, PTS, FG_percent, TP_percent, REB, AST)
-y_team <- equipos2023$POS
-
-# Dividir los datos en conjunto de entrenamiento y prueba
-set.seed(42)
-trainIndex_team <- createDataPartition(y_team, p = 0.8, list = FALSE)
-X_team_train <- X_team[trainIndex_team,]
-X_team_test <- X_team[-trainIndex_team,]
-y_team_train <- y_team[trainIndex_team]
-y_team_test <- y_team[-trainIndex_team]
-
-```
-
-
-Entrenamiento y evaluación del modelo
-
-```{r}
-
-# Modelo de Random Forest para clasificación
-rf_model <- randomForest(as.factor(y_team_train) ~ ., data = X_team_train)
-
-# Ver la importancia de las variables
-print(importance(rf_model))
-
-
-# Predicciones y evaluación del modelo en los datos de prueba
-y_team_pred <- predict(rf_model, newdata = X_team_test)
-accuracy <- sum(y_team_pred == y_team_test) / length(y_team_test)
-print(paste('Precisión del modelo:', accuracy))
 
 ```
 
